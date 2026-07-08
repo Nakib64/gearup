@@ -1,0 +1,34 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PAID
+  PICKED_UP
+  RETURNED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
