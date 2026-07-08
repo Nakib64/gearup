@@ -9,4 +9,10 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User.ts'
+export type * from './models/Category.ts'
+export type * from './models/GearItem.ts'
+export type * from './models/RentalOrder.ts'
+export type * from './models/RentalItem.ts'
+export type * from './models/Payment.ts'
+export type * from './models/Review.ts'
 export type * from './commonInputTypes.ts'

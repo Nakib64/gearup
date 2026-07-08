@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,9 +10,128 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PAID
+  PICKED_UP
+  RETURNED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  name      String
+  role      Role       @default(CUSTOMER)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  gearItems GearItem[] // Gear listed by this user (if provider)
+  rentals   RentalOrder[] // Orders placed by this user (if customer)
+  reviews   Review[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  gearItems GearItem[]
+}
+
+model GearItem {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  pricePerDay Float
+  brand       String
+  stock       Int          @default(0)
+  categoryId  String
+  category    Category     @relation(fields: [categoryId], references: [id])
+  providerId  String
+  provider    User         @relation(fields: [providerId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  rentalItems RentalItem[]
+  reviews     Review[]
+}
+
+model RentalOrder {
+  id          String       @id @default(uuid())
+  customerId  String
+  customer    User         @relation(fields: [customerId], references: [id])
+  status      OrderStatus  @default(PLACED)
+  startDate   DateTime
+  endDate     DateTime
+  totalPrice  Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  rentalItems RentalItem[]
+  payments    Payment[]
+  reviews     Review[]
+}
+
+model RentalItem {
+  id            String      @id @default(uuid())
+  rentalOrderId String
+  rentalOrder   RentalOrder @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+  gearItemId    String
+  gearItem      GearItem    @relation(fields: [gearItemId], references: [id])
+  quantity      Int         @default(1)
+  pricePerDay   Float       // Historical price snapshot
+
+  @@unique([rentalOrderId, gearItemId])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  rentalOrderId String
+  rentalOrder   RentalOrder   @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+  transactionId String        @unique
+  amount        Float
+  method        String        // e.g., "STRIPE"
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Review {
+  id            String      @id @default(uuid())
+  customerId    String
+  customer      User        @relation(fields: [customerId], references: [id])
+  gearItemId    String
+  gearItem      GearItem    @relation(fields: [gearItemId], references: [id])
+  rentalOrderId String
+  rentalOrder   RentalOrder @relation(fields: [rentalOrderId], references: [id])
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([customerId, rentalOrderId, gearItemId])
 }
