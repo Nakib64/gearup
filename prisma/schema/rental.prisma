@@ -21,6 +21,7 @@ model RentalItem {
   gearItemId    String
   gearItem      GearItem    @relation(fields: [gearItemId], references: [id])
   quantity      Int         @default(1)
+  numberOfDays  Int         @default(1)
   pricePerDay   Float
 
   @@unique([rentalOrderId, gearItemId])

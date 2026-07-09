@@ -10,6 +10,10 @@ export const swaggerDocument = {
       url: 'https://gearup-sigma.vercel.app',
       description: 'GearUp Server',
     },
+    {
+      url: 'http://localhost:3000',
+      description: 'GearUp Local Server',
+    }
   ],
   components: {
     securitySchemes: {
@@ -257,10 +261,11 @@ export const swaggerDocument = {
                     type: 'array',
                     items: {
                       type: 'object',
-                      required: ['gearItemId', 'quantity'],
+                      required: ['gearItemId', 'quantity', 'numberOfDays'],
                       properties: {
                         gearItemId: { type: 'string', format: 'uuid', example: 'uuid-here' },
                         quantity: { type: 'integer', example: 1 },
+                        numberOfDays: { type: 'integer', example: 5 },
                       },
                     },
                   },

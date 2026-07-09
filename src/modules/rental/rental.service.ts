@@ -6,7 +6,7 @@ export const createRental = async (
   data: {
     startDate: string;
     endDate: string;
-    items: { gearItemId: string; quantity: number }[];
+    items: { gearItemId: string; quantity: number; numberOfDays: number }[];
   }
 ) => {
   const start = new Date(data.startDate);
@@ -14,14 +14,6 @@ export const createRental = async (
 
   if (start.getTime() >= end.getTime()) {
     throw new AppError(400, 'End date must be after start date');
-  }
-
-  // Calculate rental duration in days
-  const timeDiff = end.getTime() - start.getTime();
-  const rentalDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-  if (rentalDays <= 0) {
-    throw new AppError(400, 'Rental duration must be at least 1 day');
   }
 
   // Extract gear item IDs
@@ -49,12 +41,13 @@ export const createRental = async (
       );
     }
 
-    const itemTotal = gear.pricePerDay * reqItem.quantity * rentalDays;
+    const itemTotal = gear.pricePerDay * reqItem.quantity * reqItem.numberOfDays;
     totalPrice += itemTotal;
 
     return {
       gearItemId: reqItem.gearItemId,
       quantity: reqItem.quantity,
+      numberOfDays: reqItem.numberOfDays,
       pricePerDay: gear.pricePerDay,
     };
   });
@@ -92,6 +85,7 @@ export const createRental = async (
           create: itemsWithPrice.map((item) => ({
             gearItemId: item.gearItemId,
             quantity: item.quantity,
+            numberOfDays: item.numberOfDays,
             pricePerDay: item.pricePerDay,
           })),
         },

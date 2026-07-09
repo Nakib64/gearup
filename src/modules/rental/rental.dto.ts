@@ -20,6 +20,9 @@ export const createRentalSchema = z.object({
         quantity: z.number({
           message: 'Quantity is required',
         }).int().positive('Quantity must be a positive integer'),
+        numberOfDays: z.number({
+          message: 'Number of days is required',
+        }).int().positive('Number of days must be a positive integer'),
       }),
       {
         message: 'Items list is required',
