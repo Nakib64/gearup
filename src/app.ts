@@ -12,6 +12,7 @@ import { paymentRoutes } from './modules/payment/payment.routes.js';
 import { reviewRoutes } from './modules/review/review.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
 import { globalErrorHandler } from './shared/middlewares/error.middleware.js';
+import { AppError } from './shared/utils/app-error.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerDocument } from './shared/utils/swagger.js';
 
@@ -67,6 +68,11 @@ app.use(
     ]
   })
 );
+
+// Handle 404 Not Found
+app.use((req: Request, res: Response, next) => {
+  next(new AppError(404, `Cannot find ${req.method} ${req.originalUrl} on this server`));
+});
 
 // Global Error Handler (Must be registered after all routes/middlewares)
 app.use(globalErrorHandler);
