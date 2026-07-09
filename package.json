@@ -10,6 +10,7 @@
     "build": "prisma generate && tsc",
     "start": "node ./dist/app.js",
     "dev": "tsx watch src/app.ts",
+    "seed": "tsx src/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
