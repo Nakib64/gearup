@@ -13,10 +13,10 @@ export const validateRequest = (schema: ZodSchema) => {
       // Assign back parsed values in case there are transforms/defaults
       req.body = parsed.body ?? req.body;
       if (parsed.query) {
-        Object.assign(req.query, parsed.query);
+        req.query = parsed.query as any;
       }
       if (parsed.params) {
-        Object.assign(req.params, parsed.params);
+        req.params = parsed.params as any;
       }
       
       next();

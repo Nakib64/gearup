@@ -8,9 +8,8 @@ async function main() {
   const adminName = 'Platform Administrator';
 
   console.log('--- Database Seeding Initialized ---');
-  console.log(`Target Admin Email: ${adminEmail}`);
 
-  // 1. Check if admin user already exists
+  // 1. Seed Admin User
   const existingAdmin = await prisma.user.findFirst({
     where: {
       role: 'ADMIN',
@@ -18,41 +17,64 @@ async function main() {
   });
 
   if (existingAdmin) {
-    console.log(`An admin account already exists in the database: ${existingAdmin.email}`);
-    console.log('Skipping admin seeding to prevent duplicates.');
-    return;
+    console.log(`Admin account already exists: ${existingAdmin.email}`);
+  } else {
+    // Double check if the email is taken
+    const emailTaken = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
+
+    if (emailTaken) {
+      console.error(`Error: The email '${adminEmail}' is already registered with another role.`);
+      process.exit(1);
+    }
+
+    console.log('Hashing admin password...');
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    console.log('Creating admin record...');
+    const admin = await prisma.user.create({
+      data: {
+        email: adminEmail,
+        password: hashedPassword,
+        name: adminName,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      },
+    });
+    console.log(`Admin user created: ${admin.email}`);
   }
 
-  // Double check if the specific email is taken
-  const emailTaken = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
+  // 2. Seed Default Categories
+  console.log('\nSeeding categories...');
+  const categories = [
+    { name: 'Camping & Hiking', description: 'Tents, sleeping bags, backpacks, and outdoor survival gear.' },
+    { name: 'Cycling', description: 'Mountain bikes, road bikes, helmets, and cycling accessories.' },
+    { name: 'Water Sports', description: 'Kayaks, paddleboards, surfboards, life jackets, and snorkels.' },
+    { name: 'Winter Sports', description: 'Skis, snowboards, boots, goggles, and winter apparel.' },
+    { name: 'Fitness & Gym', description: 'Dumbbells, barbells, yoga mats, resistance bands, and home gym gear.' },
+    { name: 'Climbing', description: 'Harnesses, climbing shoes, ropes, carabiners, and helmets.' }
+  ];
 
-  if (emailTaken) {
-    console.error(`Error: The email '${adminEmail}' is already registered with another role.`);
-    process.exit(1);
+  let seededCategoriesCount = 0;
+  for (const cat of categories) {
+    const exists = await prisma.category.findUnique({
+      where: { name: cat.name },
+    });
+
+    if (!exists) {
+      await prisma.category.create({
+        data: cat,
+      });
+      seededCategoriesCount++;
+      console.log(`- Seeded: ${cat.name}`);
+    }
   }
 
-  // 2. Hash password
-  console.log('Hashing password...');
-  const hashedPassword = await bcrypt.hash(adminPassword, 10);
-
-  // 3. Create admin user
-  console.log('Creating admin record...');
-  const admin = await prisma.user.create({
-    data: {
-      email: adminEmail,
-      password: hashedPassword,
-      name: adminName,
-      role: 'ADMIN',
-      status: 'ACTIVE',
-    },
-  });
-
-  console.log('\n--- Seeding Completed Successfully! ---');
-  console.log(`Admin Email    : ${admin.email}`);
+  console.log(`\n--- Seeding Completed Successfully! ---`);
+  console.log(`Admin Email    : ${adminEmail}`);
   console.log(`Admin Password : ${adminPassword}`);
-  console.log('Use these credentials to test admin restricted APIs.');
+  console.log(`Categories     : Seeded ${seededCategoriesCount} new categories.`);
 }
 
 main()

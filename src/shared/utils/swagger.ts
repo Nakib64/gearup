@@ -8,7 +8,7 @@ export const swaggerDocument = {
   servers: [
     {
       url: 'https://gearup-sigma.vercel.app',
-      description: 'Local Development Server',
+      description: 'GearUp Server',
     },
   ],
   components: {

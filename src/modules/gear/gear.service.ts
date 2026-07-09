@@ -17,10 +17,16 @@ export const getAllGears = async (query: {
     minPrice,
     maxPrice,
     search,
-    limit = 10,
-    page = 1,
+    limit,
+    page,
     providerId,
   } = query;
+
+  // Explicitly coerce parameters to numbers to protect Prisma queries
+  const limitNum = limit !== undefined && limit !== null && String(limit) !== '' ? Number(limit) : 10;
+  const pageNum = page !== undefined && page !== null && String(page) !== '' ? Number(page) : 1;
+  const minPriceNum = minPrice !== undefined && minPrice !== null && String(minPrice) !== '' ? Number(minPrice) : undefined;
+  const maxPriceNum = maxPrice !== undefined && maxPrice !== null && String(maxPrice) !== '' ? Number(maxPrice) : undefined;
 
   const where: any = {};
 
@@ -42,13 +48,13 @@ export const getAllGears = async (query: {
     };
   }
 
-  if (minPrice !== undefined || maxPrice !== undefined) {
+  if (minPriceNum !== undefined || maxPriceNum !== undefined) {
     where.pricePerDay = {};
-    if (minPrice !== undefined) {
-      where.pricePerDay.gte = minPrice;
+    if (minPriceNum !== undefined) {
+      where.pricePerDay.gte = minPriceNum;
     }
-    if (maxPrice !== undefined) {
-      where.pricePerDay.lte = maxPrice;
+    if (maxPriceNum !== undefined) {
+      where.pricePerDay.lte = maxPriceNum;
     }
   }
 
@@ -77,8 +83,8 @@ export const getAllGears = async (query: {
     }
   }
 
-  const skip = (page - 1) * limit;
-  const take = limit;
+  const skip = (pageNum - 1) * limitNum;
+  const take = limitNum;
 
   const [data, total] = await Promise.all([
     prisma.gearItem.findMany({
@@ -108,12 +114,12 @@ export const getAllGears = async (query: {
     prisma.gearItem.count({ where }),
   ]);
 
-  const totalPage = Math.ceil(total / limit);
+  const totalPage = Math.ceil(total / limitNum);
 
   return {
     meta: {
-      page,
-      limit,
+      page: pageNum,
+      limit: limitNum,
       total,
       totalPage,
     },
