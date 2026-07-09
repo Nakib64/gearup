@@ -12,6 +12,8 @@ import { paymentRoutes } from './modules/payment/payment.routes.js';
 import { reviewRoutes } from './modules/review/review.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
 import { globalErrorHandler } from './shared/middlewares/error.middleware.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerDocument } from './shared/utils/swagger.js';
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -52,6 +54,9 @@ app.use('/api/reviews', reviewRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Swagger Documentation
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Global Error Handler (Must be registered after all routes/middlewares)
 app.use(globalErrorHandler);

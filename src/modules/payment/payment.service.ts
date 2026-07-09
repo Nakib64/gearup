@@ -119,3 +119,54 @@ export const getBillingHistory = async (customerId: string) => {
     },
   });
 };
+
+export const getPaymentById = async (id: string, userId: string, role: string) => {
+  const payment = await prisma.payment.findUnique({
+    where: { id },
+    include: {
+      rentalOrder: {
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rentalItems: {
+            include: {
+              gearItem: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!payment) {
+    throw new AppError(404, 'Payment record not found');
+  }
+
+  // Authorization check
+  if (role === 'CUSTOMER' && payment.rentalOrder.customerId !== userId) {
+    throw new AppError(
+      403,
+      'Forbidden: You do not have permission to view this payment record'
+    );
+  }
+
+  if (role === 'PROVIDER') {
+    const hasProviderGear = payment.rentalOrder.rentalItems.some(
+      (item) => item.gearItem.providerId === userId
+    );
+
+    if (!hasProviderGear) {
+      throw new AppError(
+        403,
+        'Forbidden: You do not have permission to view this payment record'
+      );
+    }
+  }
+
+  return payment;
+};

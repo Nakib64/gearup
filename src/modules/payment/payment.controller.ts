@@ -4,6 +4,7 @@ import {
   createPaymentIntent,
   confirmPayment,
   getBillingHistory,
+  getPaymentById,
 } from './payment.service.js';
 import { sendResponse } from '../../shared/utils/response.js';
 import { AppError } from '../../shared/utils/app-error.js';
@@ -110,6 +111,26 @@ export const handleGetBillingHistory = async (
     const customerId = req.user.id;
     const result = await getBillingHistory(customerId);
     sendResponse(res, 200, 'Billing records retrieved successfully', result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get payment details by ID (Customer / Provider)
+export const handleGetPaymentById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      throw new AppError(401, 'Unauthorized: User is not authenticated');
+    }
+    const id = req.params.id as string;
+    const userId = req.user.id;
+    const role = req.user.role;
+    const result = await getPaymentById(id, userId, role);
+    sendResponse(res, 200, 'Payment details retrieved successfully', result);
   } catch (error) {
     next(error);
   }
