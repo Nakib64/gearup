@@ -1,125 +1,122 @@
-# Assignment 4 - Backend Project
+# GearUp Backend - Sports & Outdoor Gear Rental Service
 
-## 🔍 Find Your Assignment
-
-> 💡 Check your Student ID by clicking your **profile image** on the [Programming Hero Website](https://web.programming-hero.com/profile).
-
-| Last Digit of Student ID | Assignment |
-|:------------------------:|------------|
-| **0, 1, 2, 3** | [RentNest](./1-RentNest.md) 🏠 |
-| **4, 5, 6** | [GearUp](./2-GearUp.md) 🏋️ |
-| **7, 8, 9** | [FixItNow](./3-FixItNow.md) 🔧 |
+GearUp is a robust, modular backend API built using Express, TypeScript, Prisma, and PostgreSQL. It implements user authentication with RBAC (Role-Based Access Control) for Customers, Providers, and Admins, transactional rental order booking with real-time stock management, and Stripe payment integration.
 
 ---
 
-## ⚠️ Mandatory Requirements
+## 🚀 Live Links & Documentation
 
-> [!CAUTION]
-> **MANDATORY - READ CAREFULLY**
-> 
-> The following **SIX requirements are MANDATORY**:
-> 1. **API Documentation** - Provide Postman collection or Swagger/OpenAPI docs covering all endpoints
-> 2. **Consistent Error Responses** - All errors must return structured JSON (`{ success, message, errorDetails }`)
-> 3. **Commits** - 20 meaningful backend commits with descriptive messages
-> 4. **Input Validation** - Server-side validation on all endpoints with proper error messages
-> 5. **Admin Credentials** - Provide working admin email & password
-> 6. **Payment Integration** - Must integrate **Stripe** or **SSLCommerz** for processing payments. Simulated/fake payments (Cash on Delivery, Pay Later) are **NOT** accepted.
->
-> ❌ **Failure to complete any of these = 0 MARKS**
+* **Live API URL**: [https://gearup-sigma.vercel.app](https://gearup-sigma.vercel.app)
+* **Interactive API Documentation (Swagger)**: [https://gearup-sigma.vercel.app/docs](https://gearup-sigma.vercel.app/docs)
+* **GitHub Repository**: [https://github.com/Nakib64/gearup](https://github.com/Nakib64/gearup)
 
 ---
 
-## 📊 Marks Distribution
+## 🔑 Default Administrator Credentials
 
-| # | Category | Weight | Details |
-|:-:|----------|:------:|---------|
-| 1 | API Design & Documentation | 20% | RESTful endpoints, Postman/Swagger docs, response format |
-| 2 | Database Design & Schema | 20% | Prisma schema, relations, migrations, seed script |
-| 3 | Commit History | 10% | 20 meaningful backend commits |
-| 4 | Error Handling & Validation | 10% | Input validation, structured error responses, 404 handling |
-| 5 | Core Functionality | 20% | Auth, CRUD, role-based access, middleware |
-| 6 | Payment Integration | 10% | Stripe or SSLCommerz integration, payment endpoints, payment status tracking |
-| 7 | Video Explanation | 10% | 3-5 min API walkthrough video |
+Use these credentials to test admin-moderation control panel APIs:
+* **Admin Email**: `admin@gearup.com`
+* **Admin Password**: `admin123`
+
+*Note: You can re-generate/re-seed this admin user in any environment by running the database seed script.*
 
 ---
 
-## 📅 Timeline
-
-| Deadline | Maximum Marks |
-|----------|:-------------:|
-| **July 09, 2026, 11:59 PM** | 60 Marks |
-| **July 10, 2026, 11:59 PM** | 50 Marks |
-| **From July 11, 2026 To July 31, 2026, 11:59 PM** | 30 Marks |
+## 🛠️ Technology Stack
+* **Runtime**: Node.js + Express
+* **Language**: TypeScript
+* **Database**: PostgreSQL (Hosted on Neon)
+* **ORM**: Prisma ORM
+* **Authentication**: JWT (JSON Web Tokens) with refresh-token rotations & cookie sessions
+* **Payment Processor**: Stripe SDK
+* **Input Validation**: Zod (Schema-based runtime validation)
+* **Documentation**: Swagger UI
 
 ---
 
-## 📦 What to Submit
+## 📂 Features & API Endpoints
 
-| Item | Required |
-|------|:--------:|
-| Backend GitHub Repo | ✅ |
-| Live API URL | ✅ |
-| API Documentation (Postman/Swagger) | ✅ |
-| Demo Video (3-5 min) | ✅ |
-| Admin Credentials | ✅ |
+### 1. Authentication (`/api/auth`)
+* `POST /api/auth/register` (Public) - Register a new Customer or Provider.
+* `POST /api/auth/login` (Public) - Login user, set httpOnly tokens, and return JWT.
+* `POST /api/auth/refresh-token` (Public) - Rotates and issues a new access token using refresh token.
+* `POST /api/auth/logout` (Public) - Clear auth tokens.
+* `GET /api/auth/me` (Authenticated) - Retrieve the profile of the current logged-in user.
 
-**Example:**
+### 2. Category (`/api/categories`)
+* `POST /api/categories` (Admin Only) - Create a gear category.
+* `GET /api/categories` (Public) - Retrieve all catalog categories.
+
+### 3. Gear Catalog (`/api/gear` & `/api/provider/gear`)
+* `GET /api/gear` (Public) - Query and filter all listings where stock > 0. (Supports pagination, search query, brand, min/max price, and category mapping).
+* `GET /api/gear/:id` (Public) - Retrieve gear details including child category, reviews list, average rating, and review count aggregates.
+* `POST /api/provider/gear` (Provider Only) - Add a new gear item.
+* `PUT /api/provider/gear/:id` (Provider Only) - Update listing details (verifies provider ownership).
+* `DELETE /api/provider/gear/:id` (Provider Only) - Delete listing (verifies ownership and blocks deletion if linked to orders or reviews).
+
+### 4. Rental Bookings (`/api/rentals` & `/api/provider/orders`)
+* `POST /api/rentals` (Customer Only) - Place a new booking. Executes a database transaction to decrement inventory and snapshot daily price.
+* `GET /api/rentals` (Customer Only) - View customer booking history and payment status.
+* `GET /api/rentals/:id` (Customer / Owner Provider) - Get booking order details.
+* `GET /api/provider/orders` (Provider Only) - View incoming orders for items owned by the provider.
+* `PATCH /api/provider/orders/:id` (Provider Only) - Update order state transitions. Restores inventory stock back if status transitions to `CANCELLED` or `RETURNED`.
+
+### 5. Payments (`/api/payments`)
+* `POST /api/payments/create` (Customer Only) - Generates a Stripe PaymentIntent for booking total price.
+* `POST /api/payments/confirm` (Public Webhook) - Stripe webhook / callback to mark Payment as COMPLETED and RentalOrder as PAID. Supports Stripe webhook signature validation.
+* `GET /api/payments` (Customer Only) - Get payment transaction billing history.
+* `GET /api/payments/:id` (Customer / Owner Provider) - Get details for a transaction.
+
+### 6. Reviews (`/api/reviews`)
+* `POST /api/reviews` (Customer Only) - Post a review for a gear item (only allowed after order is returned, enforces single-review constraint).
+
+### 7. Administration (`/api/admin`)
+* `GET /api/admin/users` (Admin Only) - Get all registered customers and providers.
+* `PATCH /api/admin/users/:id` (Admin Only) - Suspend/activate a user account.
+* `GET /api/admin/gear` (Admin Only) - View all listed gear on the platform.
+* `GET /api/admin/rentals` (Admin Only) - View all platform orders.
+
+---
+
+## ⚙️ Setup and Installation
+
+### 1. Install Dependencies
+```bash
+npm install
 ```
-Backend Repo     : https://github.com/your-username/rentnest-backend
-Live API         : https://rentnest-api.vercel.app
-API Docs         : https://documenter.getpostman.com/view/xxx
-Demo Video       : https://drive.google.com/file/d/xxx/view
-Admin Email      : admin@rentnest.com
-Admin Password   : admin123
+
+### 2. Configure Environment Variables
+Create a `.env` file in your root folder and add:
+```env
+DATABASE_URL="your-neon-postgres-connection-string"
+JWT_ACCESS_SECRET="your-secure-access-secret"
+JWT_REFRESH_SECRET="your-secure-refresh-secret"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+NODE_ENV="development"
+PORT=3000
+
+# Admin Default Seed Credentials
+ADMIN_EMAIL="admin@gearup.com"
+ADMIN_PASSWORD="admin123"
+
+# Stripe Configuration
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 ```
 
----
+### 3. Sync Database & Seed Admin
+```bash
+npx prisma db push
+npm run seed
+```
 
-## 🎥 Video Explanation Guide
-
-**Duration:** 3-5 minutes | **Language:** English or Bengali
-
-**What to Cover:**
-1. Project overview & API architecture
-2. Demonstrate all 3 roles working via Postman/Thunder Client (Customer/Tenant, Provider/Landlord/Technician, Admin)
-3. Show CRUD operations on key endpoints
-4. Demonstrate error handling & validation in action
-5. Briefly explain one technical challenge you solved
-
-**Recording Options:**
-- **Loom** - Record & share link directly
-- **OBS** - Record & upload to Google Drive (set "Anyone with link" access)
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-| Technology | Purpose |
-|------------|---------|
-| Node.js + Express | REST API |
-| TypeScript | Type safety (recommended) |
-| Postgres + Prisma | Database + ORM |
-| JWT | Authentication |
-
-### Deployment
-| Service | Purpose |
-|---------|---------| 
-| Vercel/Render | Backend API deployment |
-
----
-
-## 🎯 Key Rules
-
-- **Roles**: Each project has 3 fixed roles. Users select during registration.
-- **Payment**: Payment integration is **MANDATORY**. You must integrate either **Stripe** or **SSLCommerz** for processing payments. Include endpoints for creating payment intents/sessions, handling payment confirmations, and tracking payment status.
-- **No Frontend Required**: This is a backend-only assignment. Test your API via Postman/Thunder Client.
-- **Flexibility**: Endpoints listed in each variant are examples. Modify as needed.
-
----
-
-## ⚠️ Important Notes
-
-> **Plagiarism** = 0 Marks. All work must be original.
-
-**Good luck! Build a rock-solid backend you're proud of.** 🚀
+### 4. Running Locally
+* Run development server:
+  ```bash
+  npm run dev
+  ```
+* Run Stripe webhook CLI listener:
+  ```bash
+  stripe listen --api-key sk_test_... --forward-to localhost:3000/api/payments/confirm
+  ```
