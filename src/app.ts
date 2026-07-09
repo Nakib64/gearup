@@ -8,6 +8,9 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { categoryRoutes } from './modules/category/category.routes.js';
 import { gearRoutes, providerGearRoutes } from './modules/gear/gear.routes.js';
 import { rentalRoutes, providerOrderRoutes } from './modules/rental/rental.routes.js';
+import { paymentRoutes } from './modules/payment/payment.routes.js';
+import { reviewRoutes } from './modules/review/review.routes.js';
+import { adminRoutes } from './modules/admin/admin.routes.js';
 import { globalErrorHandler } from './shared/middlewares/error.middleware.js';
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -15,7 +18,11 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const app: Express = express();
 
-app.use(express.json());
+app.use(express.json({
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(cookieParser());
 
 // Root route
@@ -36,6 +43,15 @@ app.use('/api/provider/gear', providerGearRoutes);
 // Rental & Order routes
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/provider/orders', providerOrderRoutes);
+
+// Payment routes
+app.use('/api/payments', paymentRoutes);
+
+// Review routes
+app.use('/api/reviews', reviewRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Global Error Handler (Must be registered after all routes/middlewares)
 app.use(globalErrorHandler);
