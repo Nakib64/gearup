@@ -18,7 +18,7 @@ export const handleGetAllGears = async (
   try {
     const result = await getAllGears(req.query as any);
     sendResponse(res, 200, 'Gear items retrieved successfully', result);
-  } catch (error) {
+  } catch (error) { 
     next(error);
   }
 };
