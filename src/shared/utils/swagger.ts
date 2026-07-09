@@ -7,7 +7,7 @@ export const swaggerDocument = {
   },
   servers: [
     {
-      url: 'http://localhost:3000',
+      url: 'https://gearup-sigma.vercel.app',
       description: 'Local Development Server',
     },
   ],
