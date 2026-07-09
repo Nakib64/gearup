@@ -68,7 +68,7 @@ app.use(
     ]
   })
 );
-
+ 
 // Handle 404 Not Found
 app.use((req: Request, res: Response, next) => {
   next(new AppError(404, `Cannot find ${req.method} ${req.originalUrl} on this server`));
