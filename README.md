@@ -19,7 +19,7 @@ Use these credentials to test admin-moderation control panel APIs:
 * **Admin Password**: `admin123`
 
 *Note: You can re-generate/re-seed this admin user in any environment by running the database seed script.*
-
+ 
 ---
 
 ## 🛠️ Technology Stack
