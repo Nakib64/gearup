@@ -4,6 +4,7 @@ import pg from 'pg';
 import cookieParser from 'cookie-parser';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
+import cors from 'cors';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { categoryRoutes } from './modules/category/category.routes.js';
 import { gearRoutes, providerGearRoutes } from './modules/gear/gear.routes.js';
@@ -20,6 +21,11 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const app: Express = express();
+
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 
 app.use(express.json({
   verify: (req: any, _res, buf) => {
